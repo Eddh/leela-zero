@@ -295,7 +295,7 @@ float UCTNode::get_eval(int tomove) const {
         if (tomove == FastBoard::WHITE) {
             eval = 1.0f - eval;
         }
-        return eval-0.2f;
+        return eval;
     }
 }
 
@@ -325,13 +325,14 @@ UCTNode* UCTNode::uct_select_child(int color) {
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
-            if (child->get_eval(color) > bestChildVal) {
-                bestChildVal = child->get_eval(color);
+            if (child->get_visits() > 0) {
+                if (child->get_eval(color) > bestChildVal) {
+                    bestChildVal = child->get_eval(color);
+                }
+                if (child->get_eval(color) < worstChildVal) {
+                    worstChildVal = child->get_eval(color);
+                }
             }
-            if (child->get_eval(color) < worstChildVal) {
-                worstChildVal = child->get_eval(color);
-            }
-
         }
     }
     if (worstChildVal = 1000.0f || bestChildVal == -1000.0f) {
@@ -346,13 +347,19 @@ UCTNode* UCTNode::uct_select_child(int color) {
         }
 
         // get_eval() will automatically set first-play-urgency
-        auto winrate = child->get_eval(color);
-        if (winrate < worstChildVal) {
-            winrate = worstChildVal;
+        auto winrate = 0.5f;
+        if (child->get_visits() > 0) {
+            winrate = child->get_eval(color);
         }
-        if (winrate > bestChildVal) {
-            winrate = bestChildVal;
+        else {
+            winrate = get_eval(color) - 0.17f;
+            if (winrate > bestChildVal) {
+                winrate = bestChildVal;
+            }
         }
+        
+        winrate = std::max(0.01f, winrate);
+
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
         auto puct = cfg_puct * psa * (numerator / denom);
