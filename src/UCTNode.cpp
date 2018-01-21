@@ -350,6 +350,9 @@ UCTNode* UCTNode::uct_select_child(int color) {
         if (winrate < worstChildVal) {
             winrate = worstChildVal;
         }
+        if (winrate > bestChildVal) {
+            winrate = bestChildVal;
+        }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
         auto puct = cfg_puct * psa * (numerator / denom);
