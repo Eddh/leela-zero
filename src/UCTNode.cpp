@@ -288,14 +288,15 @@ float UCTNode::get_eval(int tomove) const {
             score = 1.0f - score;
         }
         return score;
-    } else {
+    }
+    else {
         // If a node has not been visited yet,
         // the eval is that of the parent.
         auto eval = m_init_eval;
         if (tomove == FastBoard::WHITE) {
             eval = 1.0f - eval;
         }
-        return eval;
+        return eval-0.2f;
     }
 }
 
@@ -320,10 +321,23 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
     auto parentvisits = size_t{0};
+    float bestChildVal = -1000.0f;
+    float worstChildVal = 1000.0f;
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
+            if (child->get_eval(color) > bestChildVal) {
+                bestChildVal = child->get_eval(color);
+            }
+            if (child->get_eval(color) < worstChildVal) {
+                worstChildVal = child->get_eval(color);
+            }
+
         }
+    }
+    if (worstChildVal = 1000.0f || bestChildVal == -1000.0f) {
+        worstChildVal = 0.0f;
+        bestChildVal = 1.0f;
     }
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
 
@@ -334,6 +348,9 @@ UCTNode* UCTNode::uct_select_child(int color) {
 
         // get_eval() will automatically set first-play-urgency
         auto winrate = child->get_eval(color);
+        if (winrate < worstChildVal) {
+            winrate = worstChildVal;
+        }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
         auto puct = cfg_puct * psa * (numerator / denom);
