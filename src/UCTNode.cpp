@@ -288,8 +288,7 @@ float UCTNode::get_eval(int tomove) const {
             score = 1.0f - score;
         }
         return score;
-    }
-    else {
+    } else {
         // If a node has not been visited yet,
         // the eval is that of the parent.
         auto eval = m_init_eval;
