@@ -333,7 +333,14 @@ UCTNode* UCTNode::uct_select_child(int color) {
         }
 
         // get_eval() will automatically set first-play-urgency
-        auto winrate = child->get_eval(color);
+        auto winrate = 0.5f;
+        if (child->get_visits() > 0) {
+            winrate = child->get_eval(color);
+        }
+        else {
+            winrate = get_eval(color) - 0.17f;
+        }
+
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
         auto puct = cfg_puct * psa * (numerator / denom);
