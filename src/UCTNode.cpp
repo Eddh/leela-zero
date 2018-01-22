@@ -336,9 +336,8 @@ UCTNode* UCTNode::uct_select_child(int color) {
         auto winrate = 0.5f;
         if (child->get_visits() > 0) {
             winrate = child->get_eval(color);
-        }
-        else {
-            winrate = get_eval(color) - 0.17f;
+        } else {
+            winrate = get_eval(color) - 0.15f;
         }
 
         auto psa = child->get_score();
