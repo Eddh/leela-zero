@@ -324,7 +324,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
 
     auto rangeval = 1.0f;
     auto ratio = 1.0f;
-    auto winrateconstant = 0.8f;
+    auto winrateconstant = 0.7;
 
     auto bestChildVal = -1000.0f;
     auto worstChildVal = 1000.0f;
@@ -363,10 +363,8 @@ UCTNode* UCTNode::uct_select_child(int color) {
             winrate = (winrate - worstChildVal)*ratio;
         }
         else {
-            winrate = 0.3f;
+            winrate = 0.4f;
         }
-        
-        winrate = std::max(0.01f, winrate);
 
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
