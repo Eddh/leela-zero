@@ -324,7 +324,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
 
     auto rangeval = 1.0f;
     auto ratio = 1.0f;
-    auto winrateconstant = 0.7;
+    auto winrateconstant = 0.8;
 
     auto bestChildVal = -1000.0f;
     auto worstChildVal = 1000.0f;
@@ -347,7 +347,12 @@ UCTNode* UCTNode::uct_select_child(int color) {
         bestChildVal = 1.0f;
     } else {
         rangeval = bestChildVal - worstChildVal;
-        ratio = winrateconstant / rangeval;
+        if (ratio != 0.0f) {
+            ratio = winrateconstant / rangeval;
+        }
+        else {
+            ratio = 1.0f;
+        }
     }
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
 
@@ -363,7 +368,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
             winrate = (winrate - worstChildVal)*ratio;
         }
         else {
-            winrate = 0.4f;
+            winrate = 0.5f;
         }
 
         auto psa = child->get_score();
