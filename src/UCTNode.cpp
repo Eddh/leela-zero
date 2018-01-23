@@ -320,8 +320,14 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
     auto parentvisits = size_t{0};
-    float bestChildVal = -1000.0f;
-    float worstChildVal = 1000.0f;
+    auto visitedchilds = size_t{0};
+
+    auto rangeval = 1.0f;
+    auto ratio = 1.0f;
+    auto winrateconstant = 0.8f;
+
+    auto bestChildVal = -1000.0f;
+    auto worstChildVal = 1000.0f;
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
@@ -332,12 +338,16 @@ UCTNode* UCTNode::uct_select_child(int color) {
                 if (child->get_eval(color) < worstChildVal) {
                     worstChildVal = child->get_eval(color);
                 }
+                visitedchilds++;
             }
         }
     }
-    if (worstChildVal = 1000.0f || bestChildVal == -1000.0f) {
+    if (visitedchilds == 0) {
         worstChildVal = 0.0f;
         bestChildVal = 1.0f;
+    } else {
+        rangeval = bestChildVal - worstChildVal;
+        ratio = winrateconstant / rangeval;
     }
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
 
@@ -350,12 +360,10 @@ UCTNode* UCTNode::uct_select_child(int color) {
         auto winrate = 0.5f;
         if (child->get_visits() > 0) {
             winrate = child->get_eval(color);
+            winrate = (winrate - worstChildVal)*ratio;
         }
         else {
-            winrate = get_eval(color) - 0.17f;
-            if (winrate > bestChildVal) {
-                winrate = bestChildVal;
-            }
+            winrate = 0.3f;
         }
         
         winrate = std::max(0.01f, winrate);
