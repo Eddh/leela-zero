@@ -295,7 +295,7 @@ float UCTNode::get_eval(int tomove) const {
         if (tomove == FastBoard::WHITE) {
             eval = 1.0f - eval;
         }
-        return eval;
+        return eval-0.2f;
     }
 }
 
@@ -320,9 +320,13 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
     auto parentvisits = size_t{0};
+    auto best_child_score = -1000.0f;
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
+            if (child->get_score() > best_child_score) {
+                best_child_score = child->get_score();
+            }
         }
     }
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
@@ -336,7 +340,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
         auto winrate = child->get_eval(color);
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
-        auto puct = cfg_puct * psa * (numerator / denom);
+        auto puct = 0.3 * (psa/best_child_score) * (numerator / denom);
         auto value = winrate + puct;
         assert(value > -1000.0f);
 
@@ -344,6 +348,8 @@ UCTNode* UCTNode::uct_select_child(int color) {
             best_value = value;
             best = child.get();
         }
+
+
     }
 
     assert(best != nullptr);
