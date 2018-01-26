@@ -320,7 +320,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
     auto parentvisits = size_t{0};
-    auto best_child_score = -1000.0f;
+    auto best_child_score = 0.0001f;
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
