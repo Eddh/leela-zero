@@ -334,10 +334,10 @@ UCTNode* UCTNode::uct_select_child(int color) {
     }
     auto total_exploitation_ratio = 1.0f;
     if (total_visited_policy > 0.0f) {
-        total_exploitation_ratio = parentvisits / (total_visited_policy);
+        total_exploitation_ratio = parentvisits / (total_visited_policy * total_visited_policy);
     }
 
-    auto fpu_reduction_divisor = std::log(1 + total_exploitation_ratio);
+    auto fpu_reduction_divisor = std::log10(10 + total_exploitation_ratio);
     //myprintf("exp_ratio: %f", exploitation_ratio);
     //myprintf(" total_policy: %f", total_policy);
     //myprintf(" total explored policy: %f", total_explored_policy);
@@ -354,7 +354,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
             winrate = child->get_eval(color);
         }
         else { // First play urgency
-            winrate = child->get_eval(color) - 0.2/fpu_reduction_divisor;
+            winrate = child->get_eval(color) - 0.25/fpu_reduction_divisor;
         }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
