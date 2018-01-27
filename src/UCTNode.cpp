@@ -320,11 +320,31 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
     auto parentvisits = size_t{0};
+    auto validchilds = 0;
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
         }
     }
+
+    auto weighted_mean_explo_balance = 1.0f;
+    auto weighted_total_explo_balance = 0.0f;
+    
+
+    if (parentvisits > 0) {
+        for (const auto& child : m_children) {
+            if (child->valid()) {
+                if (child->get_visits() > 0) {
+                    auto explo_balance = child->get_visits() / (child->get_score()*parentvisits);
+                    weighted_total_explo_balance += explo_balance * child->get_visits(); // weighting
+                }
+
+            }
+        }
+        weighted_mean_explo_balance = weighted_total_explo_balance / parentvisits;
+    }
+   
+
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
 
     for (const auto& child : m_children) {
@@ -333,7 +353,14 @@ UCTNode* UCTNode::uct_select_child(int color) {
         }
 
         // get_eval() will automatically set first-play-urgency
-        auto winrate = child->get_eval(color);
+        auto winrate = 0.5f;;
+        if (child->get_visits() > 0) {
+            winrate = child->get_eval(color);
+        }
+        else { // first play urgency
+            auto fpu_reduction = 0.25f / weighted_mean_explo_balance;
+            winrate = child->get_eval(color) - fpu_reduction;
+        }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
         auto puct = cfg_puct * psa * (numerator / denom);
