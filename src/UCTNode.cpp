@@ -337,6 +337,8 @@ UCTNode* UCTNode::uct_select_child(int color) {
     }
 
     auto fpu_reduction_divisor = std::log10(10 + total_exploitation_ratio);
+
+    auto clogged_policy = 1.0f - total_visited_policy;
     //myprintf("exp_ratio: %f", exploitation_ratio);
     //myprintf(" total_policy: %f", total_policy);
     //myprintf(" total explored policy: %f", total_explored_policy);
@@ -353,7 +355,10 @@ UCTNode* UCTNode::uct_select_child(int color) {
             winrate = child->get_eval(color);
         }
         else { // First play urgency
-            winrate = child->get_eval(color) - 0.25*total_visited_policy;
+            auto qgrad = get_eval(color) - child->get_eval(color);
+            qgrad = std::max(0.0f, qgrad);
+            auto fpu_red = qgrad + 0.25*total_visited_policy;
+            winrate = child->get_eval(color) - fpu_red;
         }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
