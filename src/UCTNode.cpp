@@ -321,11 +321,15 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // We do this manually to avoid issues with transpositions.
     auto parentvisits = size_t{0};
     auto total_visited_policy = 0.0f;
+    auto best_unvisited_policy = 0.0f;
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
             if (child->get_visits() > 0) {
                 total_visited_policy += child->get_score();
+            }
+            else if (child->get_score() > best_unvisited_policy) {
+                best_unvisited_policy = child->get_score();
             }
         }
     }
@@ -343,7 +347,8 @@ UCTNode* UCTNode::uct_select_child(int color) {
             winrate = child->get_eval(color);
         }
         else { // First play urgency
-            winrate = child->get_eval(color) - 0.25*total_visited_policy;
+            auto policymodifier = std::max(0.0f, total_visited_policy - best_unvisited_policy);
+            winrate = child->get_eval(color) - 0.26*std::sqrt(policymodifier);
         }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
