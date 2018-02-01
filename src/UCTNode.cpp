@@ -348,7 +348,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
         }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
-        auto puct = 0.8 * psa * (numerator / denom);
+        auto puct = cfg_puct * psa * (numerator / denom);
         auto value = winrate + puct;
         assert(value > -1000.0f);
 
