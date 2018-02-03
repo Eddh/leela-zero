@@ -344,7 +344,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
             winrate = child->get_eval(color);
         }
         else { // First play urgency
-            winrate = child->get_eval(color) - 0.25*sqrt(total_visited_policy);
+            winrate = child->get_eval(color) - sqrt(total_visited_policy)*std::log(1+parentvisits)/std::sqrt(1+parentvisits);
         }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
