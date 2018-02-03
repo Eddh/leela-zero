@@ -296,7 +296,7 @@ float UCTNode::get_eval(int tomove) const {
         if (tomove == FastBoard::WHITE) {
             eval = 1.0f - eval;
         }
-        return eval - cfg_fpu_reduction;
+        return eval;
     }
 }
 
