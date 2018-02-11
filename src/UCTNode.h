@@ -91,6 +91,7 @@ private:
     // UCT eval
     float m_score;
     float m_init_eval;
+    float m_eval;
     std::atomic<double> m_blackevals{0};
     // node alive (not superko)
     std::atomic<bool> m_valid{true};
