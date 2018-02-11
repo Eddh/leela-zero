@@ -364,7 +364,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
         } else { // First play urgency
             winrate = avg_visited_eval - fpu_reduction;
             //winrate = std::min(child->get_eval(color), winrate);
-            winrate = std::max(winrate, worstchildval);
+            //winrate = std::max(winrate, worstchildval);
         }
 
         auto psa = child->get_score();
