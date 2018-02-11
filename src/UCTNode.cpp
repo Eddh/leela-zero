@@ -92,6 +92,7 @@ bool UCTNode::create_children(std::atomic<int> & nodecount,
         net_eval = 1.0f - net_eval;
     }
     eval = net_eval;
+    m_eval = net_eval;
 
     std::vector<Network::scored_node> nodelist;
 
@@ -319,19 +320,37 @@ UCTNode* UCTNode::uct_select_child(int color) {
 
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
+    auto total_visited_eval = 0.0f;
+    if (color == FastBoard::WHITE) {
+        total_visited_eval = 1.0 - m_eval;
+    }
+    else {
+        total_visited_eval = m_eval;
+    }
     auto total_visited_policy = 0.0f;
+    auto numvisited = 0;
+    auto worstchildval = 1.0f;
     auto parentvisits = size_t{0};
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
             if (child->get_visits() > 0) {
+                numvisited++;
+                total_visited_eval += child->get_eval(color);
                 total_visited_policy += child->get_score();
+                if (child->get_eval(color) < worstchildval) {
+                    worstchildval = child->get_eval(color);
+                }
             }
         }
     }
 
+    auto avg_visited_eval = 0.0f;
+
+    avg_visited_eval = total_visited_eval / (numvisited+1);
+
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
-    auto fpu_reduction = cfg_fpu_reduction * std::sqrt(total_visited_policy);
+    auto fpu_reduction = 0.2f * std::sqrt(total_visited_policy);
 
     for (const auto& child : m_children) {
         if (!child->valid()) {
@@ -341,7 +360,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
         auto winrate = child->get_eval(color);
         if (child->get_visits() == 0) {
             // First play urgency
-            winrate -= fpu_reduction;
+            winrate = avg_visited_eval - fpu_reduction;
         }
 
         auto psa = child->get_score();
