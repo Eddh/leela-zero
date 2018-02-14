@@ -343,6 +343,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
             // First play urgency
             winrate -= fpu_reduction;
         }
+
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
         auto puct = cfg_puct * psa * (numerator / denom);
