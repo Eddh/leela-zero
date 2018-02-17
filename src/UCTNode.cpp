@@ -346,11 +346,10 @@ UCTNode* UCTNode::uct_select_child(int color) {
     }
 
     auto avg_visited_eval = 0.0f;
-
-    avg_visited_eval = total_visited_eval / (numvisited+1);
+    auto fpu_reduction = cfg_fpu_reduction * std::sqrt(total_visited_policy);
+    avg_visited_eval = total_visited_eval / (numvisited+1+fpu_reduction);
 
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
-    auto fpu_reduction = 0.2f * std::sqrt(total_visited_policy);
 
     for (const auto& child : m_children) {
         if (!child->valid()) {
@@ -360,7 +359,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
         auto winrate = child->get_eval(color);
         if (child->get_visits() == 0) {
             // First play urgency
-            winrate = avg_visited_eval - fpu_reduction;
+            winrate = avg_visited_eval;
         }
 
         auto psa = child->get_score();
