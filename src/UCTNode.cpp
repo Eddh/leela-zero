@@ -92,6 +92,7 @@ bool UCTNode::create_children(std::atomic<int> & nodecount,
         net_eval = 1.0f - net_eval;
     }
     eval = net_eval;
+    m_eval = net_eval;
 
     std::vector<Network::scored_node> nodelist;
 
@@ -312,15 +313,41 @@ UCTNode* UCTNode::uct_select_child(int color) {
     // Count parentvisits.
     // We do this manually to avoid issues with transpositions.
     auto total_visited_policy = 0.0f;
+
+    auto highest_policy = 0.0f;
+    auto highest_unexpanded_policy = 0.0f;
+
     auto parentvisits = size_t{0};
     for (const auto& child : m_children) {
         if (child->valid()) {
             parentvisits += child->get_visits();
+            if (child->get_score() > highest_policy) {
+                highest_policy = child->get_score();
+            }
+
             if (child->get_visits() > 0) {
                 total_visited_policy += child->get_score();
+
+            } else if (child->get_score() > highest_unexpanded_policy) {
+                highest_unexpanded_policy = child->get_score();
             }
         }
     }
+
+    auto nbvisited = 0;
+    auto eval = (color == FastBoard::WHITE) ? (1.0f - m_eval) : m_eval;
+    auto fpu_estimation = eval - cfg_fpu_reduction * std::sqrt(highest_policy - highest_unexpanded_policy);
+    for (const auto& child : m_children) {
+        if (child->valid()) {
+            if (child->get_visits() > 0) {
+                auto estimation = child->get_eval(color) - cfg_fpu_reduction * std::sqrt(child->get_score() - highest_unexpanded_policy);
+                fpu_estimation += estimation;
+                nbvisited++;
+            }
+        }
+    }
+
+    fpu_estimation = fpu_estimation / (nbvisited + 1);
 
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
     auto fpu_reduction = cfg_fpu_reduction * std::sqrt(total_visited_policy);
@@ -333,7 +360,7 @@ UCTNode* UCTNode::uct_select_child(int color) {
         auto winrate = child->get_eval(color);
         if (child->get_visits() == 0) {
             // First play urgency
-            winrate -= fpu_reduction;
+            winrate = fpu_estimation;
         }
         auto psa = child->get_score();
         auto denom = 1.0f + child->get_visits();
