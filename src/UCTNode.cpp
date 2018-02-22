@@ -335,19 +335,21 @@ UCTNode* UCTNode::uct_select_child(int color) {
     }
 
     auto nbvisited = 0;
+    auto total_weight = 1.0f;
     auto eval = (color == FastBoard::WHITE) ? (1.0f - m_eval) : m_eval;
-    auto fpu_estimation = eval - cfg_fpu_reduction * std::sqrt(highest_policy - highest_unexpanded_policy);
+    auto fpu_estimation = eval;
     for (const auto& child : m_children) {
         if (child->valid()) {
             if (child->get_visits() > 0) {
-                auto estimation = child->get_eval(color) - cfg_fpu_reduction * std::sqrt(child->get_score() - highest_unexpanded_policy);
-                fpu_estimation += estimation;
+                auto weight = 1.0f - std::sqrt(child->get_score() - highest_unexpanded_policy);
+                fpu_estimation += weight * (child->get_eval(color) - cfg_fpu_reduction*std::sqrt(child->get_score()-highest_unexpanded_policy));
                 nbvisited++;
+                total_weight += weight;
             }
         }
     }
 
-    fpu_estimation = fpu_estimation / (nbvisited + 1);
+    fpu_estimation = (fpu_estimation / total_weight);
 
     auto numerator = static_cast<float>(std::sqrt((double)parentvisits));
     auto fpu_reduction = cfg_fpu_reduction * std::sqrt(total_visited_policy);
