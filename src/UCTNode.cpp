@@ -149,6 +149,9 @@ float UCTNode::do_next_rotation(GameState& state) {
     myprintf("debug value nbrot:%d orig:%5.2f this:%5.2f diff:%5.2f avg:%5.2f\n",
         m_num_rotations, orig_eval*100.0f, this_net_eval*100.0f, (orig_eval-this_net_eval)*100.0f, m_net_eval*100.0f);
 
+    // update m_blackevals
+    atomic_add(m_blackevals, (double)(m_net_eval - orig_eval));
+
     std::vector<Network::scored_node> nodelist;
 
     auto legal_sum = 0.0f;
