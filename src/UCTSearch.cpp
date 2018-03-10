@@ -150,7 +150,8 @@ SearchResult UCTSearch::play_simulation(GameState & currstate,
         node->get_visits() > num_rotations*cfg_eval_rotations_rate) {
 
         auto old_eval = node->get_blackevals() / node->get_visits();
-        auto eval = node->do_next_rotation(currstate);
+        node->do_next_rotation(currstate);
+        auto eval = node->get_net_eval(FastBoard::BLACK);
         opt_update = eval - old_eval;
     }
 
