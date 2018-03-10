@@ -35,8 +35,12 @@ public:
     SearchResult() = default;
     bool valid() const { return m_valid;  }
     float eval() const { return m_eval;  }
-    static SearchResult from_eval(float eval) {
-        return SearchResult(eval);
+    double opt_update() const { return m_opt_update; }
+
+    void set_opt_update(double opt_update) { m_opt_update = opt_update; }
+
+    static SearchResult from_eval(float eval, double opt_update = 0.0) {
+        return SearchResult(eval, opt_update);
     }
     static SearchResult from_score(float board_score) {
         if (board_score > 0.0f) {
@@ -48,10 +52,11 @@ public:
         }
     }
 private:
-    explicit SearchResult(float eval)
-        : m_valid(true), m_eval(eval) {}
+    explicit SearchResult(float eval, double opt_update = 0.0)
+        : m_valid(true), m_eval(eval), m_opt_update(opt_update) {}
     bool m_valid{false};
     float m_eval{0.0f};
+    double m_opt_update{0.0};
 };
 
 namespace TimeManagement {

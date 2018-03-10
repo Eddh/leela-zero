@@ -73,6 +73,7 @@ public:
     void virtual_loss(void);
     void virtual_loss_undo(void);
     void update(float eval);
+    void full_update();
 
     // Defined in UCTNodeRoot.cpp, only to be called on m_root in UCTSearch
     void kill_superkos(const KoState& state);

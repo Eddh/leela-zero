@@ -137,17 +137,21 @@ SearchResult UCTSearch::play_simulation(GameState & currstate,
             auto success = node->create_children(m_nodes, currstate, eval);
             if (success) {
                 result = SearchResult::from_eval(eval);
+                node->update(eval);
             }
         }
     }
 
-    const auto cfg_eval_rotations_rate = 10;
+    const auto cfg_eval_rotations_rate = 100;
     auto num_rotations = node->get_num_rotations();
+    auto opt_update = 0.0;
     if (!result.valid() && node->has_children() &&
         num_rotations < 8 &&
         node->get_visits() > num_rotations*cfg_eval_rotations_rate) {
+
+        auto old_eval = node->get_blackevals() / node->get_visits();
         auto eval = node->do_next_rotation(currstate);
-        result = SearchResult::from_eval(eval);
+        opt_update = eval - old_eval;
     }
 
     if (!result.valid() && node->has_children()) {
@@ -166,10 +170,10 @@ SearchResult UCTSearch::play_simulation(GameState & currstate,
     }
 
     if (result.valid()) {
-        node->update(result.eval());
+        node->update(result.eval()+result.opt_update());
     }
     node->virtual_loss_undo();
-
+    result.set_opt_update(result.opt_update() + opt_update);
     return result;
 }
 

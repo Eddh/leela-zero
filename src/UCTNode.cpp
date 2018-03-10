@@ -146,8 +146,8 @@ float UCTNode::do_next_rotation(GameState& state) {
     m_net_eval =
         (m_num_rotations * m_net_eval + this_net_eval)
         / (m_num_rotations + 1);
-    myprintf("debug value orig:%5.2f this:%5.2f diff:%5.2f avg:%5.2f\n",
-        orig_eval*100.0f, this_net_eval*100.0f, (orig_eval-this_net_eval)*100.0f, m_net_eval*100.0f);
+    myprintf("debug value nbrot:%d orig:%5.2f this:%5.2f diff:%5.2f avg:%5.2f\n",
+        m_num_rotations, orig_eval*100.0f, this_net_eval*100.0f, (orig_eval-this_net_eval)*100.0f, m_net_eval*100.0f);
 
     std::vector<Network::scored_node> nodelist;
 
@@ -184,8 +184,8 @@ float UCTNode::do_next_rotation(GameState& state) {
                     (m_num_rotations * child->m_score + node.first)
                     / (m_num_rotations + 1);
                 auto move = state.move_to_text(child->get_move());
-                myprintf("debug score %4s orig:%5.2f this:%5.2f diff:%5.2f avg:%5.2f\n",
-                    move.c_str(), orig_score*100.0f, node.first*100.0f, (orig_score-node.first)*100.0f, child->m_score*100.0f);
+                //myprintf("debug score %4s orig:%5.2f this:%5.2f diff:%5.2f avg:%5.2f\n",
+                //    move.c_str(), orig_score*100.0f, node.first*100.0f, (orig_score-node.first)*100.0f, child->m_score*100.0f);
                 found = true;
                 break;
             }
@@ -240,6 +240,21 @@ void UCTNode::virtual_loss_undo() {
 void UCTNode::update(float eval) {
     m_visits++;
     accumulate_eval(eval);
+}
+
+void UCTNode::full_update() {
+
+    int visits = first_visit() ? 0 : 1;
+    double blackevals = m_net_eval;
+    for (auto& child : m_children) {
+        if (child->valid()) {
+            blackevals += child->get_blackevals();
+            visits += child->get_visits();
+        }
+    }
+
+    m_visits = visits;
+    m_blackevals = blackevals;
 }
 
 bool UCTNode::has_children() const {
