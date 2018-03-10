@@ -242,21 +242,6 @@ void UCTNode::update(float eval) {
     accumulate_eval(eval);
 }
 
-void UCTNode::full_update() {
-
-    int visits = first_visit() ? 0 : 1;
-    double blackevals = m_net_eval;
-    for (auto& child : m_children) {
-        if (child->valid()) {
-            blackevals += child->get_blackevals();
-            visits += child->get_visits();
-        }
-    }
-
-    m_visits = visits;
-    m_blackevals = blackevals;
-}
-
 bool UCTNode::has_children() const {
     return m_has_children;
 }
